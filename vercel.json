@@ -1,0 +1,13 @@
+{
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "regions": ["gru1"],
+  "crons": [
+    {
+      "path": "/api/cron/executar",
+      "schedule": "0 1 * * *"
+    }
+  ]
+}
