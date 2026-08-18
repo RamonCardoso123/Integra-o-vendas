@@ -93,6 +93,15 @@ export async function GET(req: NextRequest) {
     const expires_in = tokens.expires_in || 3600
     const expiracao = new Date(Date.now() + expires_in * 1000).toISOString()
 
+    let debugInfo = {
+      cenario: '',
+      linhas_afetadas: 0,
+      erro: null as any,
+      log_sucesso: 'não tentado',
+      token_prefixo: tokens.access_token ? `${tokens.access_token.substring(0, 5)}...` : 'nulo',
+      key_length: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
+    }
+
     // 1. Busca os dados da empresa no Conta Azul
     let infoCa
     try {
@@ -131,8 +140,9 @@ export async function GET(req: NextRequest) {
       const empresaExistente = empresasExistentes && empresasExistentes.length > 0 ? empresasExistentes[0] : null
 
       if (empresaExistente) {
+        debugInfo.cenario = 'Cenário A (empresa já existe pelo CNPJ)'
         // CENÁRIO A: A empresa já existe (Re-autenticação por token expirado ou link duplicado)
-        let { error: errUpdateA } = await supabaseAdmin
+        let { data: updA, error: errUpdateA } = await supabaseAdmin
           .from('empresas')
           .update({
             access_token_conta_azul: tokens.access_token,
@@ -144,11 +154,15 @@ export async function GET(req: NextRequest) {
             nome_fantasia: infoCa.nome_fantasia || null
           })
           .eq('id', empresaExistente.id)
+          .select()
           
+        if (updA) debugInfo.linhas_afetadas = updA.length
+        if (errUpdateA) debugInfo.erro = { stage: 'updateA', msg: errUpdateA.message, code: errUpdateA.code }
+
         if (errUpdateA) {
           console.warn('[Cenário A] Falha ao gravar dados cadastrais completos. Tentando salvar apenas os tokens de conexão...', errUpdateA)
           // Se falhar (ex: colunas inexistentes no banco), salvamos apenas as colunas básicas
-          const { error: errUpdateASimple } = await supabaseAdmin
+          const { data: updASimple, error: errUpdateASimple } = await supabaseAdmin
             .from('empresas')
             .update({
               access_token_conta_azul: tokens.access_token,
@@ -157,8 +171,13 @@ export async function GET(req: NextRequest) {
               conta_azul_connected: true
             })
             .eq('id', empresaExistente.id)
+            .select()
             
-          if (errUpdateASimple) throw errUpdateASimple
+          if (updASimple) debugInfo.linhas_afetadas = updASimple.length
+          if (errUpdateASimple) {
+            debugInfo.erro = { stage: 'updateASimple', msg: errUpdateASimple.message, code: errUpdateASimple.code }
+            throw errUpdateASimple
+          }
         }
 
         // Se o usuário usou um "Card em Branco" (cujo state != empresaExistente.id), apagamos o card em branco
@@ -174,22 +193,28 @@ export async function GET(req: NextRequest) {
         }
 
         try {
-          await supabaseAdmin.from('logs_integracao').insert({
+          const { error: errLogA } = await supabaseAdmin.from('logs_integracao').insert({
             empresa_id: empresaExistente.id,
             acao: 'conectar_conta_azul',
             status: 'sucesso',
             detalhes: { expiracao, obs: 'reautenticacao', cnpj: cnpjLimpo },
           })
-        } catch (errLogA) {
+          debugInfo.log_sucesso = errLogA ? `Erro: ${errLogA.message}` : 'gravado com sucesso'
+        } catch (errLogA: any) {
+          debugInfo.log_sucesso = `Erro exception: ${errLogA.message}`
           console.error('Erro ao salvar log do Cenário A:', errLogA)
         }
 
-        return renderHtml('Autenticado com sucesso!', `A integração da empresa ${empresaExistente.nome || 'cadastrada'} foi atualizada com sucesso. Você já pode fechar esta aba.`)
+        return renderHtml(
+          'Autenticado com sucesso! [v1.1.0]', 
+          `A integração da empresa ${empresaExistente.nome || 'cadastrada'} foi atualizada com sucesso. Você já pode fechar esta aba.<br/><br/><small style="color: #666;">Debug: ${JSON.stringify(debugInfo)}</small>`
+        )
       } else {
+        debugInfo.cenario = 'Cenário B (nova empresa)'
         // CENÁRIO B: Empresa não existe. Preenche o card em branco com os dados reais
         const novoNome = infoCa.nome_fantasia || infoCa.razao_social || infoCa.nome
         
-        let { error: errUpdateB } = await supabaseAdmin
+        let { data: updB, error: errUpdateB } = await supabaseAdmin
           .from('empresas')
           .update({
             nome: novoNome,
@@ -203,11 +228,15 @@ export async function GET(req: NextRequest) {
             nome_fantasia: infoCa.nome_fantasia || null
           })
           .eq('id', state)
+          .select()
           
+        if (updB) debugInfo.linhas_afetadas = updB.length
+        if (errUpdateB) debugInfo.erro = { stage: 'updateB', msg: errUpdateB.message, code: errUpdateB.code }
+           
         if (errUpdateB) {
           console.warn('[Cenário B] Falha ao gravar dados cadastrais completos. Tentando salvar apenas os tokens de conexão...', errUpdateB)
           // Se falhar (ex: colunas inexistentes no banco), salvamos apenas os tokens de conexão no card
-          const { error: errUpdateBSimple } = await supabaseAdmin
+          const { data: updBSimple, error: errUpdateBSimple } = await supabaseAdmin
             .from('empresas')
             .update({
               access_token_conta_azul: tokens.access_token,
@@ -216,13 +245,19 @@ export async function GET(req: NextRequest) {
               conta_azul_connected: true
             })
             .eq('id', state)
+            .select()
             
-          if (errUpdateBSimple) throw errUpdateBSimple
+          if (updBSimple) debugInfo.linhas_afetadas = updBSimple.length
+          if (errUpdateBSimple) {
+            debugInfo.erro = { stage: 'updateBSimple', msg: errUpdateBSimple.message, code: errUpdateBSimple.code }
+            throw errUpdateBSimple
+          }
         }
       }
     } else {
+      debugInfo.cenario = 'Cenário C (fallback sem dados cadastrais)'
       // Fallback: Atualiza apenas os tokens no card em branco
-      const { error: errUpdateFallback } = await supabaseAdmin
+      const { data: updFallback, error: errUpdateFallback } = await supabaseAdmin
         .from('empresas')
         .update({
           access_token_conta_azul: tokens.access_token,
@@ -231,22 +266,32 @@ export async function GET(req: NextRequest) {
           conta_azul_connected: true
         })
         .eq('id', state)
+        .select()
         
-      if (errUpdateFallback) throw errUpdateFallback
+      if (updFallback) debugInfo.linhas_afetadas = updFallback.length
+      if (errUpdateFallback) {
+        debugInfo.erro = { stage: 'updateFallback', msg: errUpdateFallback.message, code: errUpdateFallback.code }
+        throw errUpdateFallback
+      }
     }
 
     try {
-      await supabaseAdmin.from('logs_integracao').insert({
+      const { error: errLogFinal } = await supabaseAdmin.from('logs_integracao').insert({
         empresa_id: state,
         acao: 'conectar_conta_azul',
         status: 'sucesso',
         detalhes: { expiracao },
       })
-    } catch (errLogFinal) {
+      debugInfo.log_sucesso = errLogFinal ? `Erro final: ${errLogFinal.message}` : 'gravado com sucesso'
+    } catch (errLogFinal: any) {
+      debugInfo.log_sucesso = `Erro final exception: ${errLogFinal.message}`
       console.error('Erro ao salvar log de sucesso final:', errLogFinal)
     }
 
-    return renderHtml('Autenticado com sucesso!', 'A integração com a Conta Azul foi concluída com sucesso. Os dados da empresa foram vinculados automaticamente. Você já pode fechar esta página.')
+    return renderHtml(
+      'Autenticado com sucesso! [v1.1.0]', 
+      `A integração com a Conta Azul foi concluída com sucesso. Os dados da empresa foram vinculados automaticamente. Você já pode fechar esta página.<br/><br/><small style="color: #666;">Debug: ${JSON.stringify(debugInfo)}</small>`
+    )
   } catch (err: any) {
     console.error('[conta-azul/callback] Erro geral:', err)
     
