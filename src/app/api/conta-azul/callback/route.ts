@@ -39,7 +39,15 @@ export async function GET(req: NextRequest) {
           </div>
         </body>
       </html>`,
-      { status: isError ? 400 : 200, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+      { 
+        status: isError ? 400 : 200, 
+        headers: { 
+          'Content-Type': 'text/html; charset=utf-8',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        } 
+      }
     )
   }
 
