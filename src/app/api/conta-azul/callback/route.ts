@@ -51,12 +51,35 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const tokens = await getTokenComCodigo(
-      code,
-      process.env.CONTA_AZUL_REDIRECT_URI!,
-      process.env.CONTA_AZUL_CLIENT_ID!,
-      process.env.CONTA_AZUL_CLIENT_SECRET!
-    )
+    let tokens
+    try {
+      tokens = await getTokenComCodigo(
+        code,
+        process.env.CONTA_AZUL_REDIRECT_URI!,
+        process.env.CONTA_AZUL_CLIENT_ID!,
+        process.env.CONTA_AZUL_CLIENT_SECRET!
+      )
+    } catch (err: any) {
+      // Registrar falha na troca de código por token nos logs
+      if (state) {
+        try {
+          await supabaseAdmin.from('logs_integracao').insert({
+            empresa_id: state,
+            acao: 'conectar_conta_azul_troca_token',
+            status: 'erro',
+            detalhes: { 
+              mensagem: err.message, 
+              stack: err.stack,
+              redirect_uri: process.env.CONTA_AZUL_REDIRECT_URI || 'não configurado',
+              client_id: process.env.CONTA_AZUL_CLIENT_ID ? 'configurado' : 'não configurado'
+            }
+          })
+        } catch (e) {
+          console.error('Erro ao salvar log de troca de token:', e)
+        }
+      }
+      throw err
+    }
 
     const expires_in = tokens.expires_in || 3600
     const expiracao = new Date(Date.now() + expires_in * 1000).toISOString()
@@ -65,8 +88,24 @@ export async function GET(req: NextRequest) {
     let infoCa
     try {
       infoCa = await obterInfoContaConectada(tokens.access_token)
-    } catch (e) {
+    } catch (e: any) {
       console.warn('[conta-azul/callback] Não foi possível obter info da conta conectada. Usando fallback.', e)
+      // Registrar falha de leitura de informações cadastrais da Conta Azul
+      if (state) {
+        try {
+          await supabaseAdmin.from('logs_integracao').insert({
+            empresa_id: state,
+            acao: 'conectar_conta_azul_obter_info_empresa',
+            status: 'erro',
+            detalhes: { 
+              mensagem: e.message, 
+              stack: e.stack
+            }
+          })
+        } catch (err) {
+          console.error('Erro ao salvar log de obterInfoContaConectada:', err)
+        }
+      }
     }
 
     if (infoCa && infoCa.cnpj) {
@@ -99,6 +138,8 @@ export async function GET(req: NextRequest) {
         if (state !== empresaExistente.id) {
           const { data: stateEmpresa } = await supabaseAdmin.from('empresas').select('cnpj').eq('id', state).single()
           if (stateEmpresa && (stateEmpresa.cnpj === '00000000000000' || !stateEmpresa.cnpj)) {
+             // Deleta o vínculo em usuarios_empresas antes de deletar a empresa para evitar erro de chave estrangeira
+             await supabaseAdmin.from('usuarios_empresas').delete().eq('empresa_id', state)
              await supabaseAdmin.from('empresas').delete().eq('id', state)
           }
         }
@@ -151,8 +192,30 @@ export async function GET(req: NextRequest) {
     })
 
     return renderHtml('Autenticado com sucesso!', 'A integração com a Conta Azul foi concluída com sucesso. Os dados da empresa foram vinculados automaticamente. Você já pode fechar esta página.')
-  } catch (err) {
-    console.error('[conta-azul/callback]', err)
+  } catch (err: any) {
+    console.error('[conta-azul/callback] Erro geral:', err)
+    
+    // Registrar erro geral de callback nos logs para podermos debugar remotamente
+    if (state) {
+      // Verifica se a empresa realmente existe antes de inserir o log (caso ela tenha sido apagada no Cenário A e o erro aconteceu depois)
+      try {
+        const { data: empExiste } = await supabaseAdmin.from('empresas').select('id').eq('id', state).single()
+        if (empExiste) {
+          await supabaseAdmin.from('logs_integracao').insert({
+            empresa_id: state,
+            acao: 'conectar_conta_azul_erro_geral',
+            status: 'erro',
+            detalhes: { 
+              mensagem: err.message, 
+              stack: err.stack
+            }
+          })
+        }
+      } catch (e) {
+        console.error('Erro ao salvar log de erro geral:', e)
+      }
+    }
+
     const msg = err instanceof Error ? err.message : 'erro_desconhecido'
     return renderHtml('Erro na Integração', 'Ocorreu um erro ao processar a autorização da Conta Azul: ' + msg, true)
   }
