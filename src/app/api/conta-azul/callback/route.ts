@@ -228,7 +228,12 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const msg = err instanceof Error ? err.message : 'erro_desconhecido'
+    let msg = 'erro_desconhecido'
+    if (err instanceof Error) {
+      msg = err.message
+    } else if (err && typeof err === 'object') {
+      msg = err.message || err.details || err.hint || JSON.stringify(err)
+    }
     return renderHtml('Erro na Integração', 'Ocorreu um erro ao processar a autorização da Conta Azul: ' + msg, true)
   }
 }
