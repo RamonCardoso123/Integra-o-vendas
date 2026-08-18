@@ -88,7 +88,10 @@ export async function GET(req: NextRequest) {
             access_token_conta_azul: tokens.access_token,
             refresh_token_conta_azul: tokens.refresh_token,
             data_expiracao_token: expiracao,
-            conta_azul_connected: true
+            conta_azul_connected: true,
+            email_login: infoCa.email || empresaExistente.email_login || null,
+            razao_social: empresaExistente.razao_social || infoCa.razao_social || null,
+            nome_fantasia: empresaExistente.nome_fantasia || infoCa.nome_fantasia || null
           })
           .eq('id', empresaExistente.id)
 
