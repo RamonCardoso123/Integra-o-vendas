@@ -18,12 +18,22 @@ export async function GET(req: NextRequest) {
   if (!empresa_id) {
     const { data: empresas } = await supabaseAdmin
       .from('empresas')
-      .select('id, nome')
+      .select('id, nome, cnpj, conta_azul_connected, access_token_conta_azul, refresh_token_conta_azul, data_expiracao_token')
       .limit(20)
+    
+    const empresasFormatadas = empresas?.map(e => ({
+      id: e.id,
+      nome: e.nome,
+      cnpj: e.cnpj,
+      conta_azul_connected: e.conta_azul_connected,
+      has_access_token: !!e.access_token_conta_azul,
+      has_refresh_token: !!e.refresh_token_conta_azul,
+      data_expiracao_token: e.data_expiracao_token
+    }))
     
     return NextResponse.json({ 
       instrucao: 'Selecione uma empresa abaixo e use ?empresa_id=ID na URL',
-      empresas 
+      empresas: empresasFormatadas 
     })
   }
 
