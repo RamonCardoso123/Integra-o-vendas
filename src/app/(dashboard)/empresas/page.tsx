@@ -369,6 +369,7 @@ function EmpresasPageContent() {
   const [conectando, setConectando] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [buscandoCnpj, setBuscandoCnpj] = useState(false)
+  const [linkAutorizacaoGerado, setLinkAutorizacaoGerado] = useState<string | null>(null)
   const [dadosCnpj, setDadosCnpj] = useState<BrasilApiCnpjResponse | null>(null)
   const [form, setForm] = useState<{
     nome: string, 
@@ -573,12 +574,13 @@ function EmpresasPageContent() {
 
       if (errVinc) throw errVinc
 
-      toast.success('Card em branco criado! Copie o link e envie ao cliente.')
+      const link = `${window.location.origin}/api/conta-azul/autorizar?empresa_id=${empresaId}`
+      setLinkAutorizacaoGerado(link)
+      navigator.clipboard.writeText(link)
+      
       setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'vendas', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
       setDadosCnpj(null)
       setEditingId(null)
-      setShowForm(false)
-      await recarregar()
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Erro ao criar card em branco'
       toast.error(msg)
@@ -811,6 +813,34 @@ function EmpresasPageContent() {
                   type="email"
                   className="w-full bg-dark-900/80 border border-dark-700/50 rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder:text-dark-600 shadow-inner"
                 />
+                
+                {editingId && (
+                  <div className="bg-dark-900/40 border border-dark-700/50 rounded-xl p-3 flex flex-col gap-2 mt-2">
+                    <p className="text-[10px] text-dark-400 font-medium leading-normal">
+                      Envie o link abaixo para o seu cliente autorizar o acesso à Conta Azul:
+                    </p>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="text"
+                        readOnly
+                        value={`${window.location.origin}/api/conta-azul/autorizar?empresa_id=${editingId}`}
+                        className="flex-1 bg-dark-950 border border-dark-700/50 rounded-lg px-2.5 py-1.5 text-xs text-dark-400 font-mono outline-none select-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = `${window.location.origin}/api/conta-azul/autorizar?empresa_id=${editingId}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success('Link copiado!');
+                        }}
+                        className="px-3 py-1.5 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                      >
+                        <Copy size={12} />
+                        Copiar
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="h-px w-full bg-gradient-to-r from-transparent via-dark-700/50 to-transparent my-1" />
@@ -931,6 +961,63 @@ function EmpresasPageContent() {
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {linkAutorizacaoGerado && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto animate-fade-in">
+          <div className="bg-dark-800 border border-dark-700/60 rounded-2xl w-full max-w-md shadow-2xl relative p-6 space-y-4">
+            <div className="text-center space-y-2">
+              <span className="text-4xl">🔗</span>
+              <h3 className="text-lg font-bold text-white leading-tight">Link de Autorização Gerado!</h3>
+              <p className="text-xs text-dark-400 leading-relaxed">
+                O card em branco foi criado. Copie o link abaixo e envie para o seu cliente autorizar a Conta Azul.
+              </p>
+            </div>
+
+            <div className="bg-dark-900 border border-dark-700/50 rounded-xl p-3 flex flex-col gap-2">
+              <input
+                type="text"
+                readOnly
+                value={linkAutorizacaoGerado}
+                className="w-full bg-dark-950 border border-dark-700/50 rounded-lg px-3 py-2 text-xs text-dark-300 font-mono outline-none select-all text-center"
+              />
+              
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(linkAutorizacaoGerado);
+                  toast.success('Link copiado!');
+                }}
+                className="w-full py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-lg"
+              >
+                <Copy size={14} />
+                Copiar Link
+              </button>
+            </div>
+
+            <div className="flex gap-2">
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Olá! Por favor, acesse o link abaixo para autorizar a integração do nosso sistema com a sua Conta Azul:\n\n${linkAutorizacaoGerado}`)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 py-2 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/20 rounded-xl text-xs font-bold transition-all text-center flex items-center justify-center gap-1"
+              >
+                Enviar via WhatsApp
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkAutorizacaoGerado(null);
+                  setShowForm(false);
+                  recarregar();
+                }}
+                className="flex-1 py-2 bg-dark-700 hover:bg-dark-600 border border-dark-600 text-white rounded-xl text-xs font-bold transition-all text-center"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
