@@ -468,6 +468,12 @@ function EmpresasPageContent() {
       if (!user) throw new Error('Usuário não autenticado')
 
       const cnpjLimpo = (form.cnpj || '').replace(/\D/g, '')
+      if (!form.nome.trim()) {
+        throw new Error('O Nome Popular (apelido) é obrigatório.')
+      }
+      if (cnpjLimpo.length !== 14) {
+        throw new Error('O CNPJ é obrigatório e deve conter exatamente 14 dígitos.')
+      }
       const razaoSocialFinal = form.razao_social.trim() || null
       const nomeFantasiaFinal = form.nome_fantasia.trim() || null
 
