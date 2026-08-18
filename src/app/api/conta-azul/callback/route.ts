@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
 
       if (empresaExistente) {
         // CENÁRIO A: A empresa já existe (Re-autenticação por token expirado ou link duplicado)
-        const { error: errUpdateA } = await supabaseAdmin
+        let { error: errUpdateA } = await supabaseAdmin
           .from('empresas')
           .update({
             access_token_conta_azul: tokens.access_token,
@@ -131,12 +131,26 @@ export async function GET(req: NextRequest) {
             data_expiracao_token: expiracao,
             conta_azul_connected: true,
             email_login: infoCa.email || empresaExistente.email_login || null,
-            razao_social: empresaExistente.razao_social || infoCa.razao_social || null,
-            nome_fantasia: empresaExistente.nome_fantasia || infoCa.nome_fantasia || null
+            razao_social: infoCa.razao_social || null,
+            nome_fantasia: infoCa.nome_fantasia || null
           })
           .eq('id', empresaExistente.id)
           
-        if (errUpdateA) throw errUpdateA
+        if (errUpdateA) {
+          console.warn('[Cenário A] Falha ao gravar dados cadastrais completos. Tentando salvar apenas os tokens de conexão...', errUpdateA)
+          // Se falhar (ex: colunas inexistentes no banco), salvamos apenas as colunas básicas
+          const { error: errUpdateASimple } = await supabaseAdmin
+            .from('empresas')
+            .update({
+              access_token_conta_azul: tokens.access_token,
+              refresh_token_conta_azul: tokens.refresh_token,
+              data_expiracao_token: expiracao,
+              conta_azul_connected: true
+            })
+            .eq('id', empresaExistente.id)
+            
+          if (errUpdateASimple) throw errUpdateASimple
+        }
 
         // Se o usuário usou um "Card em Branco" (cujo state != empresaExistente.id), apagamos o card em branco
         if (state !== empresaExistente.id) {
@@ -163,22 +177,36 @@ export async function GET(req: NextRequest) {
         // CENÁRIO B: Empresa não existe. Preenche o card em branco com os dados reais
         const novoNome = infoCa.nome_fantasia || infoCa.razao_social || infoCa.nome
         
-        const { error: errUpdateB } = await supabaseAdmin
+        let { error: errUpdateB } = await supabaseAdmin
           .from('empresas')
           .update({
             nome: novoNome,
-            razao_social: infoCa.razao_social || null,
-            nome_fantasia: infoCa.nome_fantasia || null,
             cnpj: cnpjLimpo,
             email_login: infoCa.email || null,
             access_token_conta_azul: tokens.access_token,
             refresh_token_conta_azul: tokens.refresh_token,
             data_expiracao_token: expiracao,
-            conta_azul_connected: true
+            conta_azul_connected: true,
+            razao_social: infoCa.razao_social || null,
+            nome_fantasia: infoCa.nome_fantasia || null
           })
           .eq('id', state)
           
-        if (errUpdateB) throw errUpdateB
+        if (errUpdateB) {
+          console.warn('[Cenário B] Falha ao gravar dados cadastrais completos. Tentando salvar apenas os tokens de conexão...', errUpdateB)
+          // Se falhar (ex: colunas inexistentes no banco), salvamos apenas os tokens de conexão no card
+          const { error: errUpdateBSimple } = await supabaseAdmin
+            .from('empresas')
+            .update({
+              access_token_conta_azul: tokens.access_token,
+              refresh_token_conta_azul: tokens.refresh_token,
+              data_expiracao_token: expiracao,
+              conta_azul_connected: true
+            })
+            .eq('id', state)
+            
+          if (errUpdateBSimple) throw errUpdateBSimple
+        }
       }
     } else {
       // Fallback: Atualiza apenas os tokens no card em branco
