@@ -112,16 +112,18 @@ export async function GET(req: NextRequest) {
       const cnpjLimpo = infoCa.cnpj.replace(/\D/g, '')
 
       // 2. Verifica se já existe uma empresa com esse CNPJ no banco
-      const { data: empresasExistentes } = await supabaseAdmin
+      const { data: empresasExistentes, error: errBuscaCnpj } = await supabaseAdmin
         .from('empresas')
         .select('*')
         .eq('cnpj', cnpjLimpo)
+      
+      if (errBuscaCnpj) throw errBuscaCnpj
         
       const empresaExistente = empresasExistentes && empresasExistentes.length > 0 ? empresasExistentes[0] : null
 
       if (empresaExistente) {
         // CENÁRIO A: A empresa já existe (Re-autenticação por token expirado ou link duplicado)
-        await supabaseAdmin
+        const { error: errUpdateA } = await supabaseAdmin
           .from('empresas')
           .update({
             access_token_conta_azul: tokens.access_token,
@@ -133,30 +135,35 @@ export async function GET(req: NextRequest) {
             nome_fantasia: empresaExistente.nome_fantasia || infoCa.nome_fantasia || null
           })
           .eq('id', empresaExistente.id)
+          
+        if (errUpdateA) throw errUpdateA
 
         // Se o usuário usou um "Card em Branco" (cujo state != empresaExistente.id), apagamos o card em branco
         if (state !== empresaExistente.id) {
           const { data: stateEmpresa } = await supabaseAdmin.from('empresas').select('cnpj').eq('id', state).single()
           if (stateEmpresa && (stateEmpresa.cnpj === '00000000000000' || !stateEmpresa.cnpj)) {
              // Deleta o vínculo em usuarios_empresas antes de deletar a empresa para evitar erro de chave estrangeira
-             await supabaseAdmin.from('usuarios_empresas').delete().eq('empresa_id', state)
-             await supabaseAdmin.from('empresas').delete().eq('id', state)
+             const { error: errDelVinc } = await supabaseAdmin.from('usuarios_empresas').delete().eq('empresa_id', state)
+             if (errDelVinc) throw errDelVinc
+             const { error: errDelEmp } = await supabaseAdmin.from('empresas').delete().eq('id', state)
+             if (errDelEmp) throw errDelEmp
           }
         }
 
-        await supabaseAdmin.from('logs_integracao').insert({
+        const { error: errLogA } = await supabaseAdmin.from('logs_integracao').insert({
           empresa_id: empresaExistente.id,
           acao: 'conectar_conta_azul',
           status: 'sucesso',
           detalhes: { expiracao, obs: 'reautenticacao', cnpj: cnpjLimpo },
         })
+        if (errLogA) throw errLogA
 
         return renderHtml('Autenticado com sucesso!', `A integração da empresa ${empresaExistente.nome || 'cadastrada'} foi atualizada com sucesso. Você já pode fechar esta aba.`)
       } else {
         // CENÁRIO B: Empresa não existe. Preenche o card em branco com os dados reais
         const novoNome = infoCa.nome_fantasia || infoCa.razao_social || infoCa.nome
         
-        await supabaseAdmin
+        const { error: errUpdateB } = await supabaseAdmin
           .from('empresas')
           .update({
             nome: novoNome,
@@ -170,10 +177,12 @@ export async function GET(req: NextRequest) {
             conta_azul_connected: true
           })
           .eq('id', state)
+          
+        if (errUpdateB) throw errUpdateB
       }
     } else {
       // Fallback: Atualiza apenas os tokens no card em branco
-      await supabaseAdmin
+      const { error: errUpdateFallback } = await supabaseAdmin
         .from('empresas')
         .update({
           access_token_conta_azul: tokens.access_token,
@@ -182,14 +191,17 @@ export async function GET(req: NextRequest) {
           conta_azul_connected: true
         })
         .eq('id', state)
+        
+      if (errUpdateFallback) throw errUpdateFallback
     }
 
-    await supabaseAdmin.from('logs_integracao').insert({
+    const { error: errLogFinal } = await supabaseAdmin.from('logs_integracao').insert({
       empresa_id: state,
       acao: 'conectar_conta_azul',
       status: 'sucesso',
       detalhes: { expiracao },
     })
+    if (errLogFinal) throw errLogFinal
 
     return renderHtml('Autenticado com sucesso!', 'A integração com a Conta Azul foi concluída com sucesso. Os dados da empresa foram vinculados automaticamente. Você já pode fechar esta página.')
   } catch (err: any) {
