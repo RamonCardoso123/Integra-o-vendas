@@ -43,14 +43,14 @@ export async function GET(req: NextRequest) {
     }
 
     if (empresaInicial) {
-      // 2. Tenta forçar o update da flag conta_azul_connected para true e gravar tokens fictícios
+      // 2. Limpa os tokens fictícios de teste para voltar o card ao estado desconectado original
       const { data: dataUpdate, error: errUpdate } = await supabaseAdmin
         .from('empresas')
         .update({
-          conta_azul_connected: true,
-          access_token_conta_azul: 'teste_access_token_vercel',
-          refresh_token_conta_azul: 'teste_refresh_token_vercel',
-          data_expiracao_token: new Date(Date.now() + 86400 * 1000).toISOString()
+          conta_azul_connected: false,
+          access_token_conta_azul: null,
+          refresh_token_conta_azul: null,
+          data_expiracao_token: null
         })
         .eq('id', empresaInicial.id)
         .select()
