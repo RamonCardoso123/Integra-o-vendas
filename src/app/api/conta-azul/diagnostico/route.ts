@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
     '/financeiro/categorias?tipo=DESPESA',
     '/financeiro/categorias-financeiras',
     '/pessoas?tipo=FORNECEDOR',
+    '/pessoas/conta-conectada',
   ]
 
   for (const path of endpoints) {
