@@ -7,6 +7,7 @@ import DropZoneVendas from '@/components/upload/DropZoneVendas'
 import TabelaVendasPreview from '@/components/upload/TabelaVendasPreview'
 import ModalEditarVenda from '@/components/upload/ModalEditarVenda'
 import ModalEditarDatacar from '@/components/upload/ModalEditarDatacar'
+import ModalDetalheVendaDatacar from '@/components/upload/ModalDetalheVendaDatacar'
 import ModalPreviewEmissao from '@/components/upload/ModalPreviewEmissao'
 import SelectorEmpresa from '@/components/layout/SelectorEmpresa'
 import PainelAgendamento from '@/components/agendamento/PainelAgendamento'
@@ -513,18 +514,17 @@ export default function VendasPage() {
               <div className="bg-dark-800 border border-dark-700 rounded-xl p-5 animate-fade-in">
                 <div className="flex items-center gap-2 mb-4 text-white font-semibold">
                   <Database size={18} className="text-blue-400" />
-                  <h3>Buscar Vendas do Datacar</h3>
+                  <h3>Buscar Vendas do Datacar {empresaAtiva ? `— ${empresaAtiva.nome}` : ''}</h3>
                 </div>
                 
                 <div className="flex items-end gap-4 flex-wrap">
                   {/* Tipo Período */}
                   <div>
-                    <label className={`text-xs font-medium mb-1 block ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`}>Tipo período:</label>
+                    <label className="text-xs font-medium mb-1 block text-dark-400">Tipo período:</label>
                     <select
                       value={tipoPeriodoVendas}
                       onChange={(e) => setTipoPeriodoVendas(e.target.value as any)}
-                      disabled={!!numeroOS}
-                      className={`bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none ${numeroOS ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className="bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                       <option value="criacao">Criação/Abertura</option>
                       <option value="conclusao">Conclusão</option>
@@ -534,40 +534,37 @@ export default function VendasPage() {
 
                   {/* Datas */}
                   <div>
-                    <label className={`text-xs font-medium mb-1 block ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`}>Data Início</label>
+                    <label className="text-xs font-medium mb-1 block text-dark-400">Data Início</label>
                     <div className="relative">
-                      <Calendar size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`} />
+                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" />
                       <input
                         type="date"
                         value={dtIni}
                         onChange={(e) => setDtIni(e.target.value)}
-                        disabled={!!numeroOS}
-                        className={`bg-dark-900 border border-dark-600 rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none w-40 ${numeroOS ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className="bg-dark-900 border border-dark-600 rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none w-40"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className={`text-xs font-medium mb-1 block ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`}>Data Fim</label>
+                    <label className="text-xs font-medium mb-1 block text-dark-400">Data Fim</label>
                     <div className="relative">
-                      <Calendar size={16} className={`absolute left-3 top-1/2 -translate-y-1/2 ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`} />
+                      <Calendar size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-400" />
                       <input
                         type="date"
                         value={dtFim}
                         onChange={(e) => setDtFim(e.target.value)}
-                        disabled={!!numeroOS}
-                        className={`bg-dark-900 border border-dark-600 rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none w-40 ${numeroOS ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className="bg-dark-900 border border-dark-600 rounded-lg pl-10 pr-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none w-40"
                       />
                     </div>
                   </div>
 
                   {/* Situação e OS */}
                   <div>
-                    <label className={`text-xs font-medium mb-1 block ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`}>Situação:</label>
+                    <label className="text-xs font-medium mb-1 block text-dark-400">Situação:</label>
                     <select
                       value={situacaoVendas}
                       onChange={(e) => setSituacaoVendas(e.target.value as any)}
-                      disabled={!!numeroOS}
-                      className={`bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none ${numeroOS ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className="bg-dark-900 border border-dark-600 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-blue-500/50 outline-none"
                     >
                       <option value="todas">Todas</option>
                       <option value="em_andamento">Em Andamento</option>
@@ -579,12 +576,11 @@ export default function VendasPage() {
                   
                   {/* Filtro Itens a Enviar */}
                   <div>
-                    <label className={`text-xs font-medium mb-1 block ${numeroOS ? 'text-dark-600' : 'text-dark-400'}`}>Itens a Enviar:</label>
+                    <label className="text-xs font-medium mb-1 block text-dark-400">Itens a Enviar:</label>
                     <select
                       value={filtroTipoItens}
                       onChange={(e) => setFiltroTipoItens(e.target.value as any)}
-                      disabled={!!numeroOS}
-                      className={`bg-dark-900 border border-brand-500/50 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-brand-500/50 outline-none ${numeroOS ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      className="bg-dark-900 border border-brand-500/50 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-brand-500/50 outline-none"
                     >
                       <option value="tudo">Produtos e Serviços</option>
                       <option value="produtos">Apenas Produtos</option>
@@ -824,131 +820,8 @@ export default function VendasPage() {
                             >
                               <Trash2 size={13} />
                             </button>
-                            {expandidoDatacar === venda.id
-                              ? <ChevronUp size={14} className="text-dark-500" />
-                              : <ChevronDown size={14} className="text-dark-500" />
-                            }
                           </div>
                         </div>
-
-                        {/* Detalhes expandidos */}
-                        {expandidoDatacar === venda.id && (
-                          <div className="px-4 pb-3 pt-1 border-t border-dark-700/30 mx-4 mb-2 animate-fade-in">
-                            <div className="flex justify-between items-start">
-                              {/* Informações do cliente */}
-                              <div className="text-xs text-dark-400 space-y-0.5 mb-2">
-                              {venda.dados_datacar?.vendedor ? (
-                                <p><strong className="text-dark-300">Vendedor:</strong> {String(venda.dados_datacar.vendedor)}</p>
-                              ) : null}
-                              {venda.dados_datacar?.veiculo ? (
-                                <p><strong className="text-dark-300">Veículo:</strong> {String(venda.dados_datacar.veiculo)}</p>
-                              ) : null}
-                              {venda.dados_datacar?.cliente_cpf_cnpj ? (
-                                <p><strong className="text-dark-300">CPF/CNPJ:</strong> {String(venda.dados_datacar.cliente_cpf_cnpj)}</p>
-                              ) : null}
-                              {(venda.dados_datacar?.cliente_logradouro || venda.dados_datacar?.cliente_cidade) ? (
-                                <p>
-                                  <strong className="text-dark-300">Endereço:</strong>{' '}
-                                  {[venda.dados_datacar.cliente_logradouro, venda.dados_datacar.cliente_numero, venda.dados_datacar.cliente_complemento]
-                                    .filter(Boolean).map(String).join(', ')}
-                                  {venda.dados_datacar.cliente_bairro ? ` — ${String(venda.dados_datacar.cliente_bairro)}` : ''}
-                                  {venda.dados_datacar.cliente_cidade ? ` — ${String(venda.dados_datacar.cliente_cidade)}` : ''}
-                                  {venda.dados_datacar.cliente_uf ? `/${String(venda.dados_datacar.cliente_uf)}` : ''}
-                                  {venda.dados_datacar.cliente_cep ? ` CEP: ${String(venda.dados_datacar.cliente_cep)}` : ''}
-                                </p>
-                              ) : null}
-                              {venda.forma_pagamento && (
-                                <p><strong className="text-dark-300">Pagamento:</strong> {venda.forma_pagamento}</p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); setEditandoDatacarId(venda.id) }}
-                                className="text-[11px] font-semibold flex items-center gap-1.5 bg-brand-500/20 hover:bg-brand-500/30 text-brand-400 px-3 py-1.5 rounded border border-brand-500/30 transition-colors"
-                              >
-                                Analisar / Editar
-                              </button>
-                              {venda.status === 'duplicidade' && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setVendasDatacar(prev => prev.map(v => v.id === venda.id ? { ...v, status: 'pendente' } : v))
-                                    setSelecionadosDatacar(prev => new Set(prev).add(venda.id))
-                                  }}
-                                  className="text-[11px] font-semibold flex items-center gap-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded border border-amber-500/20 transition-colors"
-                                >
-                                  Forçar Envio (Ignorar Duplicidade)
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                            {/* Itens */}
-                            {venda.itens.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-dark-300 text-xs font-semibold mb-1">Itens ({venda.itens.length}):</p>
-                                <div className="bg-dark-900/60 rounded-lg p-2 space-y-1.5 max-h-40 overflow-y-auto">
-                                  {venda.itens.map((item: any, j: number) => (
-                                    <div key={j} className="flex flex-col gap-1 text-[11px] border-b border-dark-700/50 pb-1.5 last:border-0 last:pb-0">
-                                      <div className="flex items-center gap-2">
-                                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold flex-shrink-0 ${
-                                          item.tipo === 'produto' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-pink-500/20 text-pink-400'
-                                        }`}>
-                                          {item.tipo === 'produto' ? 'PEÇA' : 'SERV'}
-                                        </span>
-                                        <span className="text-dark-500 w-6 text-right flex-shrink-0">{item.quantidade}x</span>
-                                        <span className="text-dark-300 flex-1 truncate">
-                                          {item.codigo && <span className="text-blue-400 font-mono mr-2">[{item.codigo}]</span>}
-                                          {item.descricao}
-                                        </span>
-                                      </div>
-                                      {/* Badges fiscais */}
-                                      <div className="flex items-center gap-1.5 pl-8 flex-wrap">
-                                        {item.ncm && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-                                            NCM: {item.ncm}
-                                          </span>
-                                        )}
-                                        {item.cest && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
-                                            CEST: {item.cest}
-                                          </span>
-                                        )}
-                                        {item.origem && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-amber-500/15 text-amber-400 border border-amber-500/20">
-                                            Orig: {item.origem}
-                                          </span>
-                                        )}
-                                        {item.tipo_produto && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/20">
-                                            Tipo: {item.tipo_produto}
-                                          </span>
-                                        )}
-                                        {item.unidade_medida && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-dark-700 text-dark-300">
-                                            UN: {item.unidade_medida}
-                                          </span>
-                                        )}
-                                        {!item.ncm && !item.cest && (
-                                          <span className="px-1.5 py-0.5 rounded text-[9px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20">
-                                            ⚠ Sem dados fiscais
-                                          </span>
-                                        )}
-                                      </div>
-                                      <div className="flex items-center justify-end gap-3 text-[10px] pl-8">
-                                        <span className="text-dark-400">Bruto: {formatCurrency((item.valor_unitario_original ?? item.valor_unitario) * item.quantidade)}</span>
-                                        {(item.desconto ?? 0) > 0 && (
-                                          <span className="text-orange-400">Desc: {formatCurrency((item.desconto ?? 0) * item.quantidade)}</span>
-                                        )}
-                                        <span className="text-white font-semibold">Líq: {formatCurrency(item.valor_unitario * item.quantidade)}</span>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>
@@ -1091,6 +964,22 @@ export default function VendasPage() {
             setVendasDatacar(prev => prev.map(v => v.id === vendaAtualizada.id ? { ...vendaAtualizada, analisado: true } : v))
             // Auto-seleciona a venda para envio após analisar
             setSelecionadosDatacar(prev => new Set(prev).add(vendaAtualizada.id))
+          }}
+        />
+      )}
+
+      {expandidoDatacar !== null && (
+        <ModalDetalheVendaDatacar
+          venda={vendasDatacar.find(v => v.id === expandidoDatacar)}
+          onClose={() => setExpandidoDatacar(null)}
+          onEdit={() => {
+            setEditandoDatacarId(expandidoDatacar)
+            setExpandidoDatacar(null)
+          }}
+          onForcarEnvio={() => {
+            setVendasDatacar(prev => prev.map(v => v.id === expandidoDatacar ? { ...v, status: 'pendente' } : v))
+            setSelecionadosDatacar(prev => new Set(prev).add(expandidoDatacar))
+            setExpandidoDatacar(null)
           }}
         />
       )}

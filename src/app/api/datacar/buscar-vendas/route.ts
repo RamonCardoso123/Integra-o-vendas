@@ -51,17 +51,39 @@ export async function POST(req: NextRequest) {
       idOperador: empresa.datacar_id_operador,
     }
 
-    // Se um número de OS específico foi informado, ignora os filtros do usuário
-    // e busca em um período amplo (desde 2022 até hoje)
+    // Se um número de OS específico foi informado, usamos o tipo de período 'criacao'
+    // e buscamos em uma margem segura de 180 dias para evitar timeouts, ou no período customizado caso seja maior.
     if (numeroOS) {
       tipoPeriodo = 'criacao'
-      dtIni = '2022-01-01'
-      
-      const hoje = new Date()
-      const dia = String(hoje.getDate()).padStart(2, '0')
-      const mes = String(hoje.getMonth() + 1).padStart(2, '0')
-      const ano = hoje.getFullYear()
-      dtFim = `${ano}-${mes}-${dia}`
+      if (dtIni && dtFim) {
+        const dataIniDate = new Date(dtIni)
+        const hoje = new Date()
+        const limiteDiferenca = 180 * 24 * 60 * 60 * 1000 // 180 dias
+        
+        // Se o período for menor que 180 dias, ampliamos para 180 dias por segurança
+        if (hoje.getTime() - dataIniDate.getTime() < limiteDiferenca) {
+          const seisMesesAtras = new Date()
+          seisMesesAtras.setDate(hoje.getDate() - 180)
+          const diaI = String(seisMesesAtras.getDate()).padStart(2, '0')
+          const mesI = String(seisMesesAtras.getMonth() + 1).padStart(2, '0')
+          const anoI = seisMesesAtras.getFullYear()
+          dtIni = `${anoI}-${mesI}-${diaI}`
+        }
+      } else {
+        const hoje = new Date()
+        const seisMesesAtras = new Date()
+        seisMesesAtras.setDate(hoje.getDate() - 180)
+        
+        const diaI = String(seisMesesAtras.getDate()).padStart(2, '0')
+        const mesI = String(seisMesesAtras.getMonth() + 1).padStart(2, '0')
+        const anoI = seisMesesAtras.getFullYear()
+        dtIni = `${anoI}-${mesI}-${diaI}`
+        
+        const diaF = String(hoje.getDate()).padStart(2, '0')
+        const mesF = String(hoje.getMonth() + 1).padStart(2, '0')
+        const anoF = hoje.getFullYear()
+        dtFim = `${anoF}-${mesF}-${diaF}`
+      }
     }
 
     // Buscar todas as páginas (Datacar retorna max 50 por página)
