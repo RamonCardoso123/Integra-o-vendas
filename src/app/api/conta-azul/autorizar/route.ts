@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUrlAutorizacao } from '@/lib/conta-azul/api'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const empresaId = searchParams.get('empresa_id')

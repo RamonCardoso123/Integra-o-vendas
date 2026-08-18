@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUrlAutorizacao } from '@/lib/conta-azul/api'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 /**
  * Rota intermediária do fluxo de 2 passos para troca de conta na Conta Azul.
  * 

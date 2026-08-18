@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getTokenComCodigo, obterInfoContaConectada } from '@/lib/conta-azul/api'
 
+export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const supabaseAdmin = createClient(

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getValidToken, TokenError } from '@/lib/conta-azul/token-manager'
 
+export const dynamic = 'force-dynamic'
 export const runtime = 'nodejs'
 
 const supabaseAdmin = createClient(
