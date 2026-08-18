@@ -36,7 +36,7 @@ CREATE POLICY "Acesso as configuracoes da propria empresa"
 -- Trigger de updated_at
 CREATE TRIGGER update_empresa_config_fiscal_modtime
 BEFORE UPDATE ON public.empresa_config_fiscal
-FOR EACH ROW EXECUTE FUNCTION update_modified_column();
+FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 -- Criar bucket seguro para os certificados
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
@@ -55,3 +55,4 @@ CREATE POLICY "Permitir gerenciar proprio certificado"
 ON storage.objects
 FOR ALL TO authenticated
 USING (bucket_id = 'certificados_fiscais');
+

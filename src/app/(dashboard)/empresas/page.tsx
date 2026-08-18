@@ -363,7 +363,7 @@ function EmpresaCard({
 // --- Página principal ---
 function EmpresasPageContent() {
   const { empresas, recarregar, setEmpresaAtiva, empresaAtiva } = useEmpresa()
-  const [viewMode, setViewMode] = useState<'home' | 'vendas' | 'contas_a_pagar'>('home')
+  const [viewMode, setViewMode] = useState<'home' | 'vendas' | 'contas_a_pagar'>('vendas')
   const [showForm, setShowForm] = useState(false)
   const [salvando, setSalvando] = useState(false)
   const [conectando, setConectando] = useState<string | null>(null)
@@ -384,7 +384,7 @@ function EmpresasPageContent() {
     nome: '', 
     cnpj: '', 
     email_login: '', 
-    tipo_empresa: 'ambos',
+    tipo_empresa: 'vendas',
     datacar_token: '',
     datacar_cod_emp: '',
     datacar_id_operador: '',
@@ -524,7 +524,7 @@ function EmpresasPageContent() {
         toast.success('Empresa criada com sucesso!')
       }
 
-      setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'ambos', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
+      setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'vendas', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
       setDadosCnpj(null)
       setEditingId(null)
       setShowForm(false)
@@ -552,7 +552,7 @@ function EmpresasPageContent() {
           nome: 'Aguardando Conexão...',
           cnpj: '00000000000000',
           created_by: user.id,
-          tipo_empresa: 'ambos',
+          tipo_empresa: 'vendas',
         })
 
       if (errEmp) throw errEmp
@@ -568,7 +568,7 @@ function EmpresasPageContent() {
       if (errVinc) throw errVinc
 
       toast.success('Card em branco criado! Copie o link e envie ao cliente.')
-      setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'ambos', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
+      setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'vendas', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
       setDadosCnpj(null)
       setEditingId(null)
       setShowForm(false)
@@ -615,7 +615,7 @@ function EmpresasPageContent() {
       nome: empresa.nome || '',
       cnpj: empresa.cnpj || '',
       email_login: empresa.email_login || '',
-      tipo_empresa: empresa.tipo_empresa || 'ambos',
+      tipo_empresa: empresa.tipo_empresa || 'vendas',
       datacar_token: empresa.datacar_token || '',
       datacar_cod_emp: empresa.datacar_cod_emp || '',
       datacar_id_operador: empresa.datacar_id_operador || '',
@@ -631,18 +631,9 @@ function EmpresasPageContent() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          {viewMode !== 'home' && (
-            <button
-              onClick={() => setViewMode('home')}
-              className="p-2 rounded-lg bg-dark-800 text-dark-300 hover:text-white hover:bg-dark-700 transition-colors border border-dark-700"
-              title="Voltar"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            </button>
-          )}
           <div>
             <h1 className="text-2xl font-bold text-white">
-              {viewMode === 'home' ? 'Empresas' : viewMode === 'vendas' ? 'Empresas - Vendas' : 'Empresas - Contas a Pagar'}
+              Empresas
             </h1>
             <p className="text-dark-400 text-sm mt-1">Gerencie as empresas do seu BPO</p>
           </div>
@@ -651,7 +642,7 @@ function EmpresasPageContent() {
           type="button"
           onClick={() => {
             setEditingId(null)
-            setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'ambos', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
+            setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'vendas', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
             setDadosCnpj(null)
             setShowForm(!showForm)
           }}
@@ -671,7 +662,7 @@ function EmpresasPageContent() {
             <button
               onClick={() => {
                 setEditingId(null)
-                setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'ambos', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
+                setForm({ nome: '', cnpj: '', email_login: '', tipo_empresa: 'vendas', datacar_token: '', datacar_cod_emp: '', datacar_id_operador: '', razao_social: '', nome_fantasia: '' })
                 setDadosCnpj(null)
                 setShowForm(false)
               }}
@@ -779,31 +770,16 @@ function EmpresasPageContent() {
                 </div>
               )}
 
-              {/* NOME POPULAR & TIPO */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-dark-300 font-medium ml-1">Nome Popular (Como você chama)</label>
-                  <input
-                    value={form.nome}
-                    onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                    placeholder="Ex: Auto Peças Silva"
-                    required
-                    className="w-full bg-dark-900/50 border border-dark-700/50 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all placeholder:text-dark-600 shadow-inner"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs text-dark-300 font-medium ml-1">Tipo de Integração</label>
-                  <select
-                    value={form.tipo_empresa}
-                    onChange={(e) => setForm({ ...form, tipo_empresa: e.target.value as any })}
-                    className="w-full bg-dark-900/50 border border-dark-700/50 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all appearance-none shadow-inner"
-                    style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`, backgroundPosition: 'right 1rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
-                  >
-                    <option value="ambos">Ambos (Vendas e Financeiro)</option>
-                    <option value="financeiro">Apenas Financeiro</option>
-                    <option value="vendas">Apenas Vendas</option>
-                  </select>
-                </div>
+              {/* NOME POPULAR */}
+              <div className="space-y-1.5">
+                <label className="text-xs text-dark-300 font-medium ml-1">Nome Popular (Como você chama)</label>
+                <input
+                  value={form.nome}
+                  onChange={(e) => setForm({ ...form, nome: e.target.value })}
+                  placeholder="Ex: Auto Peças Silva"
+                  required
+                  className="w-full bg-dark-900/50 border border-dark-700/50 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500 outline-none transition-all placeholder:text-dark-600 shadow-inner"
+                />
               </div>
             </div>
 
@@ -919,7 +895,6 @@ function EmpresasPageContent() {
       {viewMode !== 'home' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {empresas
-            .filter(emp => viewMode === 'vendas' ? (emp.tipo_empresa === 'vendas' || emp.tipo_empresa === 'ambos') : (emp.tipo_empresa === 'financeiro' || emp.tipo_empresa === 'ambos'))
             .map((empresa) => {
               const isAtiva = empresaAtiva?.id === empresa.id;
               return (
@@ -938,10 +913,10 @@ function EmpresasPageContent() {
               );
           })}
 
-          {empresas.filter(emp => viewMode === 'vendas' ? (emp.tipo_empresa === 'vendas' || emp.tipo_empresa === 'ambos') : (emp.tipo_empresa === 'financeiro' || emp.tipo_empresa === 'ambos')).length === 0 && !showForm && (
+          {empresas.length === 0 && !showForm && (
             <div className="lg:col-span-2 py-20 flex flex-col items-center justify-center border-2 border-dashed border-dark-700 rounded-2xl">
               <Building2 size={48} className="text-dark-700 mb-4" />
-              <p className="text-dark-400">Nenhuma empresa encontrada para esta categoria.</p>
+              <p className="text-dark-400">Nenhuma empresa encontrada.</p>
               <button
                 onClick={() => setShowForm(true)}
                 className="text-brand-400 font-semibold mt-2 hover:text-brand-300 transition-colors"

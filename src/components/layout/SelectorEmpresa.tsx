@@ -23,12 +23,8 @@ export default function SelectorEmpresa() {
   const pathname = usePathname() || ''
 
   const empresasFiltradas = useMemo(() => {
-    return empresas.filter(emp => {
-      if (pathname.startsWith('/vendas')) return emp.tipo_empresa === 'vendas' || emp.tipo_empresa === 'ambos'
-      if (pathname.startsWith('/contas-pagar') || pathname.startsWith('/contas-receber')) return emp.tipo_empresa === 'financeiro' || emp.tipo_empresa === 'ambos'
-      return true
-    })
-  }, [empresas, pathname])
+    return empresas
+  }, [empresas])
 
   useEffect(() => {
     if (empresasFiltradas.length > 0 && empresaAtiva) {
@@ -133,9 +129,6 @@ export default function SelectorEmpresa() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">
                     {emp.nome}
-                    <span className="ml-2 text-[9px] uppercase px-1.5 py-0.5 rounded-full bg-dark-600 text-dark-300">
-                      {emp.tipo_empresa}
-                    </span>
                   </p>
                   <p className="text-dark-500 text-xs">{emp.cnpj ? formatCNPJ(emp.cnpj) : 'CNPJ nao informado'}</p>
                 </div>
