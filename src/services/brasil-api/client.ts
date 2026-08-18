@@ -51,11 +51,11 @@ export async function buscarCnpj(cnpj: string): Promise<BrasilApiCnpjResponse | 
   if (cnpjLimpo.length !== 14) return null
 
   try {
-    const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`)
+    const res = await fetch(`/api/cnpj?cnpj=${cnpjLimpo}`)
     if (!res.ok) return null
     return await res.json()
   } catch (error) {
-    console.warn(`Erro ao buscar CNPJ ${cnpjLimpo} na Brasil API:`, error)
+    console.warn(`Erro ao buscar CNPJ ${cnpjLimpo} via API backend:`, error)
     return null
   }
 }
