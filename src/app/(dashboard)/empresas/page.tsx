@@ -420,8 +420,7 @@ function EmpresasPageContent() {
   }, [])
 
   const handleConectarContaAzul = (empresaId: string) => {
-    setConectando(empresaId)
-    window.location.href = `/api/conta-azul/autorizar?empresa_id=${empresaId}`
+    window.open(`/api/conta-azul/autorizar?empresa_id=${empresaId}`, '_blank')
   }
 
   const handleDesconectar = async (empresaId: string) => {

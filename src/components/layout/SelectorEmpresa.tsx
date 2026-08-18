@@ -45,8 +45,7 @@ export default function SelectorEmpresa() {
 
   const handleConectar = () => {
     if (!empresaAtiva) return
-    setConectando(true)
-    window.location.href = `/api/conta-azul/autorizar?empresa_id=${empresaAtiva.id}`
+    window.open(`/api/conta-azul/autorizar?empresa_id=${empresaAtiva.id}`, '_blank')
   }
 
   const handleDesconectar = async () => {

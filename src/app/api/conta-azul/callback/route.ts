@@ -164,13 +164,16 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        const { error: errLogA } = await supabaseAdmin.from('logs_integracao').insert({
-          empresa_id: empresaExistente.id,
-          acao: 'conectar_conta_azul',
-          status: 'sucesso',
-          detalhes: { expiracao, obs: 'reautenticacao', cnpj: cnpjLimpo },
-        })
-        if (errLogA) throw errLogA
+        try {
+          await supabaseAdmin.from('logs_integracao').insert({
+            empresa_id: empresaExistente.id,
+            acao: 'conectar_conta_azul',
+            status: 'sucesso',
+            detalhes: { expiracao, obs: 'reautenticacao', cnpj: cnpjLimpo },
+          })
+        } catch (errLogA) {
+          console.error('Erro ao salvar log do Cenário A:', errLogA)
+        }
 
         return renderHtml('Autenticado com sucesso!', `A integração da empresa ${empresaExistente.nome || 'cadastrada'} foi atualizada com sucesso. Você já pode fechar esta aba.`)
       } else {
@@ -223,13 +226,16 @@ export async function GET(req: NextRequest) {
       if (errUpdateFallback) throw errUpdateFallback
     }
 
-    const { error: errLogFinal } = await supabaseAdmin.from('logs_integracao').insert({
-      empresa_id: state,
-      acao: 'conectar_conta_azul',
-      status: 'sucesso',
-      detalhes: { expiracao },
-    })
-    if (errLogFinal) throw errLogFinal
+    try {
+      await supabaseAdmin.from('logs_integracao').insert({
+        empresa_id: state,
+        acao: 'conectar_conta_azul',
+        status: 'sucesso',
+        detalhes: { expiracao },
+      })
+    } catch (errLogFinal) {
+      console.error('Erro ao salvar log de sucesso final:', errLogFinal)
+    }
 
     return renderHtml('Autenticado com sucesso!', 'A integração com a Conta Azul foi concluída com sucesso. Os dados da empresa foram vinculados automaticamente. Você já pode fechar esta página.')
   } catch (err: any) {
