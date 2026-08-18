@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
     CONTA_AZUL_CLIENT_ID: process.env.CONTA_AZUL_CLIENT_ID ? `Prefixo: ${process.env.CONTA_AZUL_CLIENT_ID.substring(0, 4)}... (Tamanho: ${process.env.CONTA_AZUL_CLIENT_ID.length})` : 'NÃO CONFIGURADO',
     CONTA_AZUL_CLIENT_SECRET: process.env.CONTA_AZUL_CLIENT_SECRET ? `Prefixo: ${process.env.CONTA_AZUL_CLIENT_SECRET.substring(0, 4)}... (Tamanho: ${process.env.CONTA_AZUL_CLIENT_SECRET.length})` : 'NÃO CONFIGURADO',
     CONTA_AZUL_REDIRECT_URI: process.env.CONTA_AZUL_REDIRECT_URI || 'NÃO CONFIGURADO',
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NÃO CONFIGURADO'
+    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NÃO CONFIGURADO',
+    SUPABASE_SERVICE_ROLE_KEY_LENGTH: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
   }
 
   if (!empresa_id) {
