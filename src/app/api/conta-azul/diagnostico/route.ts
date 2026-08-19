@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY_V2 || process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 const BASE_URL = 'https://api-v2.contaazul.com/v1'
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
     CONTA_AZUL_CLIENT_SECRET: process.env.CONTA_AZUL_CLIENT_SECRET ? `Prefixo: ${process.env.CONTA_AZUL_CLIENT_SECRET.substring(0, 4)}... (Tamanho: ${process.env.CONTA_AZUL_CLIENT_SECRET.length})` : 'NÃO CONFIGURADO',
     CONTA_AZUL_REDIRECT_URI: process.env.CONTA_AZUL_REDIRECT_URI || 'NÃO CONFIGURADO',
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'NÃO CONFIGURADO',
-    SUPABASE_SERVICE_ROLE_KEY_LENGTH: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
+    SUPABASE_SERVICE_ROLE_KEY_LENGTH: (process.env.SUPABASE_SERVICE_ROLE_KEY_V2 || process.env.SUPABASE_SERVICE_ROLE_KEY || '').length
   }
 
   if (!empresa_id) {

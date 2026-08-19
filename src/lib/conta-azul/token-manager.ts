@@ -14,7 +14,7 @@ import { refreshToken } from './api'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY_V2 || process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 /** Erro específico de token para tratamento nas rotas */

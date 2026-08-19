@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY_V2 || process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
 export async function GET(req: NextRequest) {
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
       erro: null as any,
       log_sucesso: 'não tentado',
       token_prefixo: tokens.access_token ? `${tokens.access_token.substring(0, 5)}...` : 'nulo',
-      key_length: process.env.SUPABASE_SERVICE_ROLE_KEY ? process.env.SUPABASE_SERVICE_ROLE_KEY.length : 0
+      key_length: (process.env.SUPABASE_SERVICE_ROLE_KEY_V2 || process.env.SUPABASE_SERVICE_ROLE_KEY || '').length
     }
 
     // 1. Busca os dados da empresa no Conta Azul
